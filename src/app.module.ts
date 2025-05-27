@@ -8,6 +8,8 @@ import { join } from 'path';
 import { UsersModule } from './users/users.module';
 import { EmpresasModule } from './empresas/empresas.module';
 import { EmpleadoModule } from './empleados/empleado.module';
+import { EventosRRHHModule } from './eventos-rrhh/eventos-rrhh.module';
+
 
 @Module({
   imports: [
@@ -38,6 +40,9 @@ import { EmpleadoModule } from './empleados/empleado.module';
 
 
     EmpleadoModule,
+
+
+    EventosRRHHModule,
   ],
   providers: [],
 })
