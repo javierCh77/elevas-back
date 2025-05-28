@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { EmpresasModule } from './empresas/empresas.module';
 import { EmpleadoModule } from './empleados/empleado.module';
 import { EventosRRHHModule } from './eventos-rrhh/eventos-rrhh.module';
+import { EncuestasModule } from './encuestas/encuestas.module';
 
 
 @Module({
@@ -43,6 +44,9 @@ import { EventosRRHHModule } from './eventos-rrhh/eventos-rrhh.module';
 
 
     EventosRRHHModule,
+
+
+    EncuestasModule,
   ],
   providers: [],
 })

@@ -1,11 +1,12 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { EventoRRHH } from "./entities/eventos-rrhh.entity";
-import { CreateEventoRRHHDto } from "./dto/create-evento-rrhh.dto";
-import { UpdateEventoRRHHDto } from "./dto/update-evento-rrhh.dto";
-import { Empleado } from "../empleados/entities/empleado.entity";
-import { User } from "../users/entities/user.entity";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { EventoRRHH } from './entities/eventos-rrhh.entity';
+import { CreateEventoRRHHDto } from './dto/create-evento-rrhh.dto';
+import { UpdateEventoRRHHDto } from './dto/update-evento-rrhh.dto';
+import { Empleado } from '../empleados/entities/empleado.entity';
+import { User } from '../users/entities/user.entity';
+import { FindOptionsWhere, ILike } from 'typeorm';
 
 @Injectable()
 export class EventosRRHHService {
@@ -15,34 +16,65 @@ export class EventosRRHHService {
     @InjectRepository(User) private userRepo: Repository<User>,
   ) {}
 
-  async findAll() {
+  async findAll(filters?: {
+    tipo?: string;
+    estado?: string;
+    empleadoId?: string;
+  }): Promise<EventoRRHH[]> {
+    const where: FindOptionsWhere<EventoRRHH> = {};
+
+    if (filters?.tipo) {
+      where.tipo = filters.tipo;
+    }
+
+    if (filters?.estado) {
+      where.estado = filters.estado as any;
+    }
+
+    if (filters?.empleadoId) {
+      where.empleado = { id: filters.empleadoId };
+    }
+
     return this.eventoRepo.find({
-      relations: ["empleado", "creadoPor"],
-      order: { fechaInicio: "DESC" },
+      where,
+      relations: ['empleado', 'creadoPor'],
+      order: { fechaInicio: 'DESC' },
     });
   }
 
   async findOne(id: string) {
     const evento = await this.eventoRepo.findOne({
       where: { id },
-      relations: ["empleado", "creadoPor"],
+      relations: ['empleado', 'creadoPor'],
     });
-    if (!evento) throw new NotFoundException("Evento no encontrado");
+    if (!evento) throw new NotFoundException('Evento no encontrado');
     return evento;
   }
 
-  async create(dto: CreateEventoRRHHDto) {
-    const creadoPor = await this.userRepo.findOneBy({ id: dto.creadoPorId });
-    if (!creadoPor) throw new NotFoundException("Usuario no encontrado");
+  async create(dto: CreateEventoRRHHDto): Promise<EventoRRHH> {
+    const creadoPor = await this.userRepo.findOne({
+      where: { id: dto.creadoPorId },
+    });
+    if (!creadoPor)
+      throw new NotFoundException('Usuario creador no encontrado');
 
-    const empleado = dto.empleadoId
-      ? await this.empleadoRepo.findOneBy({ id: dto.empleadoId })
-      : null;
+    let empleado: Empleado | null = null;
+    if (dto.empleadoId) {
+      empleado = await this.empleadoRepo.findOne({
+        where: { id: dto.empleadoId },
+      });
+      if (!empleado) throw new NotFoundException('Empleado no encontrado');
+    }
 
     const evento = this.eventoRepo.create({
-      ...dto,
-      empleado,
+      titulo: dto.titulo,
+      descripcion: dto.descripcion,
+      tipo: dto.tipo,
+      fechaInicio: new Date(dto.fechaInicio),
+      fechaFin: new Date(dto.fechaFin),
+      estado: dto.estado ?? 'pendiente',
       creadoPor,
+      empleado,
     });
 
     return this.eventoRepo.save(evento);
@@ -52,8 +84,10 @@ export class EventosRRHHService {
     const evento = await this.findOne(id);
 
     if (dto.empleadoId) {
-      const empleado = await this.empleadoRepo.findOneBy({ id: dto.empleadoId });
-      if (!empleado) throw new NotFoundException("Empleado no encontrado");
+      const empleado = await this.empleadoRepo.findOneBy({
+        id: dto.empleadoId,
+      });
+      if (!empleado) throw new NotFoundException('Empleado no encontrado');
       evento.empleado = empleado;
     }
 
