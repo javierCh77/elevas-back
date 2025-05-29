@@ -1,35 +1,27 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
-import { Pregunta } from './pregunta.entity';
-import { Encuesta } from './encuesta.entity';
-import { Empleado } from '../../empleados/entities/empleado.entity';
+// src/encuestas-colaboradores/entities/respuesta.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Colaborador } from './colaborador.entity';
 
 @Entity('respuestas')
 export class Respuesta {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Encuesta, (encuesta) => encuesta.respuestas, { onDelete: 'CASCADE' })
-  encuesta: Encuesta;
+  @ManyToOne(() => Colaborador, c => c.respuestas)
+  colaborador: Colaborador;
 
-  @ManyToOne(() => Pregunta, (pregunta) => pregunta.respuestas, { onDelete: 'CASCADE' })
-  pregunta: Pregunta;
+  @Column('int')
+  recomiendaEmpresa: number;
 
-  @ManyToOne(() => Empleado, { eager: true })
-  empleado: Empleado;
+  @Column()
+  satisfaccion: string;
 
-  @Column('text')
-  respuesta: string;
+  @Column()
+  tiempoEnEmpresa: string;
 
-  @CreateDateColumn()
-  creadoEn: Date;
+  @Column('int')
+  recomiendaProductos: number;
 
-  @UpdateDateColumn()
-  actualizadoEn: Date;
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  fecha: Date;
 }
