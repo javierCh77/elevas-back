@@ -24,11 +24,11 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: ['http://10.27.63.174:3001', 'http://localhost:3001'],
+    origin: ['http://31.97.23.62:3011', 'http://localhost:3011'],
     credentials: true,
   });
 
-  await app.listen(3005, '0.0.0.0');
-  logger.log(`Servidor corriendo en http://localhost:3005`);
+  await app.listen(3010, '0.0.0.0');
+  logger.log(`Servidor corriendo en http://localhost:3010`);
 }
 bootstrap();
