@@ -11,8 +11,6 @@ import { EmpleadoModule } from './empleados/empleado.module';
 import { EventosRRHHModule } from './eventos-rrhh/eventos-rrhh.module';
 import { RespuestaEncuestaModule } from './respuesta-encuesta/respuesta-encuesta.module';
 
-
-
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -34,23 +32,15 @@ import { RespuestaEncuestaModule } from './respuesta-encuesta/respuesta-encuesta
 
     AuthModule,
 
-
     UsersModule,
-
 
     EmpresasModule,
 
-
     EmpleadoModule,
-
 
     EventosRRHHModule,
 
-
-  
-
-
-    RespuestaEncuestaModule
+    RespuestaEncuestaModule,
   ],
   providers: [],
 })

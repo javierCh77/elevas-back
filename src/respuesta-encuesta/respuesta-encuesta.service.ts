@@ -16,8 +16,8 @@ export class RespuestaEncuestaService {
   async create(dto: CreateRespuestaEncuestaDto): Promise<RespuestaEncuesta> {
     const existente = await this.repo.findOne({ where: { dni: dto.dni } });
     if (existente) throw new ConflictException('El DNI ya fue registrado.');
-
-    const nueva = this.repo.create(dto);
+  
+    const nueva = this.repo.create(dto); // dto ahora incluye el nuevo `respuestas` y `areaTrabajo`
     return this.repo.save(nueva);
   }
 
