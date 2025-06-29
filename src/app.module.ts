@@ -10,6 +10,8 @@ import { EmpresasModule } from './empresas/empresas.module';
 import { EmpleadoModule } from './empleados/empleado.module';
 import { EventosRRHHModule } from './eventos-rrhh/eventos-rrhh.module';
 import { RespuestaEncuestaModule } from './respuesta-encuesta/respuesta-encuesta.module';
+import { CandidatoModule } from './candidato/candidato.module';
+import { CvModule } from './cv/cv.module';
 
 
 
@@ -50,7 +52,19 @@ import { RespuestaEncuestaModule } from './respuesta-encuesta/respuesta-encuesta
   
 
 
-    RespuestaEncuestaModule
+    RespuestaEncuestaModule,
+
+
+  
+
+
+    CandidatoModule,
+
+
+  
+
+
+    CvModule
   ],
   providers: [],
 })
