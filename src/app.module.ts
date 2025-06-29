@@ -13,8 +13,6 @@ import { RespuestaEncuestaModule } from './respuesta-encuesta/respuesta-encuesta
 import { CandidatoModule } from './candidato/candidato.module';
 import { CvModule } from './cv/cv.module';
 
-
-
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -36,18 +34,15 @@ import { CvModule } from './cv/cv.module';
 
     AuthModule,
 
-
     UsersModule,
-
 
     EmpresasModule,
 
-
     EmpleadoModule,
-
 
     EventosRRHHModule,
 
+<<<<<<< HEAD
 
   
 
@@ -65,6 +60,9 @@ import { CvModule } from './cv/cv.module';
 
 
     CvModule
+=======
+    RespuestaEncuestaModule,
+>>>>>>> 24d53b746203216a80704346320752dfa3c087ec
   ],
   providers: [],
 })

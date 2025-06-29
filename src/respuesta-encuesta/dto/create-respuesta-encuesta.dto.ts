@@ -1,4 +1,3 @@
-// src/respuesta-encuesta/dto/create-respuesta-encuesta.dto.ts
 import { IsString, IsNotEmpty, IsObject } from "class-validator";
 
 export class CreateRespuestaEncuestaDto {
@@ -18,17 +17,27 @@ export class CreateRespuestaEncuestaDto {
   @IsNotEmpty()
   nombreEmpresa: string;
 
+  @IsString()
+  @IsNotEmpty()
+  areaTrabajo: string;
+
   @IsObject()
   respuestas: {
-    trabajoValorado: string;
-    claridadObjetivos: string;
-    comodidadFeedback: string;
+    climaComodidadEquipo: string;
+    climaAmbienteSaludable: string;
+    climaEquilibrioVida: string;
+    liderazgoInformacionClara: string;
+    liderazgoConfianzaDireccion: string;
+    liderazgoOpinionesEscuchadas: string;
+    recursosSatisfaccionSalario: string;
+    recursosCompensacionJusta: string;
+    desarrolloOportunidades: string;
+    desarrolloMotivacion: string;
+    desarrolloAporteSignificativo: string;
+    desarrolloContinuarEmpresa: string;
+    reconocimientoValorado: string;
+    reconocimientoDisfruteTrabajo: string;
     culturaUnaPalabra: string;
-    recomendariaEmpresa: string;
-    recursosDisponibles: string;
     capacitacionesUtiles: string;
-    equilibrioVidaLaboral: string;
-    opinionTenidaEnCuenta: string;
-    oportunidadesDesarrollo: string;
   };
 }

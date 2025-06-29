@@ -1,10 +1,16 @@
 // src/respuesta-encuesta/respuesta-encuesta.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Unique } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  Unique,
+} from 'typeorm';
 
 @Entity()
-@Unique(["dni"])
+@Unique(['dni'])
 export class RespuestaEncuesta {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @CreateDateColumn()
@@ -21,18 +27,27 @@ export class RespuestaEncuesta {
 
   @Column()
   nombreEmpresa: string;
+  
+  @Column()
+  areaTrabajo: string;
 
-  @Column({ type: "jsonb" })
+  @Column({ type: 'jsonb' })
   respuestas: {
-    trabajoValorado: string;
-    claridadObjetivos: string;
-    comodidadFeedback: string;
+    climaComodidadEquipo: string;
+    climaAmbienteSaludable: string;
+    climaEquilibrioVida: string;
+    liderazgoInformacionClara: string;
+    liderazgoConfianzaDireccion: string;
+    liderazgoOpinionesEscuchadas: string;
+    recursosSatisfaccionSalario: string;
+    recursosCompensacionJusta: string;
+    desarrolloOportunidades: string;
+    desarrolloMotivacion: string;
+    desarrolloAporteSignificativo: string;
+    desarrolloContinuarEmpresa: string;
+    reconocimientoValorado: string;
+    reconocimientoDisfruteTrabajo: string;
     culturaUnaPalabra: string;
-    recomendariaEmpresa: string;
-    recursosDisponibles: string;
     capacitacionesUtiles: string;
-    equilibrioVidaLaboral: string;
-    opinionTenidaEnCuenta: string;
-    oportunidadesDesarrollo: string;
   };
 }
