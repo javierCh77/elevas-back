@@ -11,12 +11,12 @@ export class CreateCandidatoDto {
   nombreCompleto: string;
 
   @IsOptional()
-  @IsEmail()
+  //@IsEmail()
   email?: string;
 
-@IsNotEmpty()
-@IsString()
-dni: string;
+  @IsNotEmpty()
+  @IsString()
+  dni: string;
 
   @IsOptional()
   @IsString()

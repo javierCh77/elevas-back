@@ -42,27 +42,11 @@ import { CvModule } from './cv/cv.module';
 
     EventosRRHHModule,
 
-<<<<<<< HEAD
-
-  
-
-
     RespuestaEncuestaModule,
-
-
-  
-
 
     CandidatoModule,
 
-
-  
-
-
-    CvModule
-=======
-    RespuestaEncuestaModule,
->>>>>>> 24d53b746203216a80704346320752dfa3c087ec
+    CvModule,
   ],
   providers: [],
 })
