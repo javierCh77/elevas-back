@@ -12,10 +12,11 @@ import { EventosRRHHModule } from './eventos-rrhh/eventos-rrhh.module';
 import { RespuestaEncuestaModule } from './respuesta-encuesta/respuesta-encuesta.module';
 import { CandidatoModule } from './candidato/candidato.module';
 import { CvModule } from './cv/cv.module';
+import { InteligenciaTalentoModule } from './inteligencia-talento/inteligencia-talento.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true}),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
@@ -43,10 +44,15 @@ import { CvModule } from './cv/cv.module';
     EventosRRHHModule,
 
     RespuestaEncuestaModule,
+<<<<<<< HEAD
 
     CandidatoModule,
 
     CvModule,
+=======
+    CandidatoModule,
+    InteligenciaTalentoModule
+>>>>>>> 80f1884e2f72ca70db4c3c7aa0f95c500d955d69
   ],
   providers: [],
 })
