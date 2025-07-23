@@ -11,7 +11,7 @@ export class CreateCandidatoDto {
   nombreCompleto?: string;
 
   @IsOptional()
-  @IsEmail()
+  //@IsEmail()
   email?: string;
 
   @IsNotEmpty()

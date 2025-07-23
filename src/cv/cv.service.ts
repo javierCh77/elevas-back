@@ -157,4 +157,29 @@ ${text}
 
     return result.data.text;
   }
+
+  private async convertPdfToPng(buffer: Buffer): Promise<string> {
+    const tempName = randomUUID();
+    const pdfPath = join(__dirname, `${tempName}.pdf`);
+    const imgPath = join(__dirname, `${tempName}.png`);
+
+    await writeFile(pdfPath, buffer);
+
+    return new Promise((resolve, reject) => {
+      const child = spawn('pdftoppm', ['-png', '-f', '1', '-singlefile', pdfPath, pdfPath.replace('.pdf', '')]);
+
+      child.on('exit', async (code) => {
+        await unlink(pdfPath);
+        if (code === 0) resolve(imgPath);
+        else reject(new Error('Error al convertir PDF a imagen'));
+      });
+    });
+  }
+
+  private async extractTextWithOCR(imagePath: string): Promise<string> {
+    const result = await Tesseract.recognize(imagePath, 'spa', {
+      logger: (m) => console.log(m),
+    });
+    return result.data.text;
+  }
 }
