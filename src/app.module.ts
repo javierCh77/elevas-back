@@ -45,7 +45,8 @@ import { InteligenciaTalentoModule } from './inteligencia-talento/inteligencia-t
 
     RespuestaEncuestaModule,
     CandidatoModule,
-    InteligenciaTalentoModule
+    InteligenciaTalentoModule,
+    CvModule,
   ],
   providers: [],
 })
