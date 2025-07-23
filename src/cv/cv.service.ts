@@ -8,7 +8,6 @@ import * as Tesseract from 'tesseract.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as pdfPoppler from 'pdf-poppler';
-
 import { tmpdir } from 'os';
 import OpenAI from 'openai';
 import { randomUUID } from 'crypto';
@@ -35,23 +34,21 @@ export class CvService {
       text = pdf.text;
       console.log('📄 Texto extraído con pdf-parse:\n', text || '[VACÍO]');
 
-      // 2. Si está vacío, usar OCR como fallback
+      // 2. Si está vacío, usar OCR
       if (!text || text.trim().length < 30) {
         console.log('⚠️ Texto vacío. Procesando con OCR...');
-
         const imagePath = await this.convertirPdfAPng(file.buffer);
         text = await this.ocrImagen(imagePath);
-        fs.unlinkSync(imagePath); // limpiar imagen temporal
-
+        fs.unlinkSync(imagePath); // eliminar archivo temporal
         console.log('📸 Texto extraído con OCR:\n', text || '[VACÍO]');
       }
 
-      // 3. Validar texto final
+      // 3. Validar texto
       if (!text || text.trim().length < 30) {
         throw new BadRequestException('El texto extraído del CV está vacío o es ilegible.');
       }
 
-      // 4. Preparar prompt para OpenAI
+      // 4. Crear prompt
       const prompt = `
 Extraé del siguiente CV los siguientes campos y devolveme un JSON válido:
 
@@ -69,6 +66,7 @@ Texto del CV:
 ${text}
       `.trim();
 
+      // 5. Llamada a OpenAI
       const completion = await this.openai.chat.completions.create({
         model: 'gpt-4',
         messages: [
@@ -88,7 +86,7 @@ ${text}
       const raw = completion.choices[0]?.message?.content || '';
       console.log('📦 Respuesta cruda de OpenAI:\n', raw);
 
-      // 5. Limpiar el JSON usando regex
+      // 6. Limpiar y parsear JSON
       const jsonMatch = raw.match(/```json([\s\S]*?)```/);
       let jsonSolo = '';
 
@@ -101,7 +99,6 @@ ${text}
         }
       }
 
-      // 6. Parsear JSON limpio
       let datos: any;
       try {
         datos = JSON.parse(jsonSolo);
@@ -110,7 +107,7 @@ ${text}
         throw new InternalServerErrorException('La respuesta de OpenAI no fue un JSON válido.');
       }
 
-      // 7. Validar campos obligatorios
+      // 7. Validar campos
       const camposRequeridos = ['nombreCompleto', 'email', 'telefono', 'experiencia'];
       for (const campo of camposRequeridos) {
         if (!datos[campo] || typeof datos[campo] !== 'string') {
@@ -132,54 +129,27 @@ ${text}
   private async convertirPdfAPng(buffer: Buffer): Promise<string> {
     const tempPdfPath = path.join(tmpdir(), `${randomUUID()}.pdf`);
     fs.writeFileSync(tempPdfPath, buffer);
-  
+
     const outputPath = tempPdfPath.replace('.pdf', '');
     const outDir = path.dirname(tempPdfPath);
     const outPrefix = path.basename(outputPath);
-  
+
     await pdfPoppler.convert(tempPdfPath, {
       format: 'png',
       out_dir: outDir,
       out_prefix: outPrefix,
       page: 1,
     });
-  
+
     fs.unlinkSync(tempPdfPath);
     return path.join(outDir, `${outPrefix}-1.png`);
   }
-  
 
   private async ocrImagen(rutaImagen: string): Promise<string> {
     const result = await Tesseract.recognize(rutaImagen, 'spa', {
-      logger: (m) =>
-        console.log(`🔍 OCR: ${m.status} (${Math.round(m.progress * 100)}%)`),
+      logger: (m) => console.log(`🔍 OCR: ${m.status} (${Math.round(m.progress * 100)}%)`),
     });
 
-    return result.data.text;
-  }
-
-  private async convertPdfToPng(buffer: Buffer): Promise<string> {
-    const tempName = randomUUID();
-    const pdfPath = join(__dirname, `${tempName}.pdf`);
-    const imgPath = join(__dirname, `${tempName}.png`);
-
-    await writeFile(pdfPath, buffer);
-
-    return new Promise((resolve, reject) => {
-      const child = spawn('pdftoppm', ['-png', '-f', '1', '-singlefile', pdfPath, pdfPath.replace('.pdf', '')]);
-
-      child.on('exit', async (code) => {
-        await unlink(pdfPath);
-        if (code === 0) resolve(imgPath);
-        else reject(new Error('Error al convertir PDF a imagen'));
-      });
-    });
-  }
-
-  private async extractTextWithOCR(imagePath: string): Promise<string> {
-    const result = await Tesseract.recognize(imagePath, 'spa', {
-      logger: (m) => console.log(m),
-    });
     return result.data.text;
   }
 }
