@@ -17,7 +17,9 @@ export class InteligenciaTalentoService {
     } = dto;
 
     if (!candidatos || candidatos.length < 1 || candidatos.length > 3) {
-      throw new Error('Debes enviar entre 1 y 3 candidatos para la comparación.');
+      throw new Error(
+        'Debes enviar entre 1 y 3 candidatos para la comparación.',
+      );
     }
 
     const openai = new OpenAI({
@@ -32,7 +34,7 @@ export class InteligenciaTalentoService {
 - Ubicación: ${c.ubicacion}
 - Formación: ${c.nivelEstudios} – ${c.tituloObtenido}
 - Idiomas: ${(c.idiomas || []).map((i) => i.idioma).join(', ') || 'No especifica'}
-`
+`,
       )
       .join('\n');
 

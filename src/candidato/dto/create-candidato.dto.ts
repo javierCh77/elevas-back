@@ -8,7 +8,7 @@ import {
 
 export class CreateCandidatoDto {
   @IsNotEmpty()
-  nombreCompleto: string;
+  nombreCompleto?: string;
 
   @IsOptional()
   //@IsEmail()
@@ -16,7 +16,7 @@ export class CreateCandidatoDto {
 
   @IsNotEmpty()
   @IsString()
-  dni: string;
+  dni?: string;
 
   @IsOptional()
   @IsString()

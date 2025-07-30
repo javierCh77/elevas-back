@@ -44,12 +44,9 @@ import { InteligenciaTalentoModule } from './inteligencia-talento/inteligencia-t
     EventosRRHHModule,
 
     RespuestaEncuestaModule,
-
     CandidatoModule,
-
+    InteligenciaTalentoModule,
     CvModule,
-    CandidatoModule,
-    InteligenciaTalentoModule
   ],
   providers: [],
 })

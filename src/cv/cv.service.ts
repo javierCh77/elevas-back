@@ -1,132 +1,155 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  BadRequestException,
+} from '@nestjs/common';
 import * as pdfParse from 'pdf-parse';
-import OpenAI from 'openai';
 import * as Tesseract from 'tesseract.js';
-import { spawn } from 'child_process';
-import { writeFile, unlink } from 'fs/promises';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as pdfPoppler from 'pdf-poppler';
+import { tmpdir } from 'os';
+import OpenAI from 'openai';
 import { randomUUID } from 'crypto';
-import { join } from 'path';
 
 @Injectable()
 export class CvService {
   private openai: OpenAI;
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY no está definida.');
+    }
+
+    this.openai = new OpenAI({ apiKey });
   }
 
   async procesarCV(file: Express.Multer.File) {
-    // Paso 1: intento con pdf-parse
-    const pdf = await pdfParse(file.buffer);
-    let text = pdf.text?.trim();
-
-    // Paso 2: si no hay texto, hacemos OCR
-    if (!text || text.length < 20) {
-      console.log('📷 PDF sin texto, usando OCR...');
-
-      const imgPath = await this.convertPdfToPng(file.buffer);
-      text = await this.extractTextWithOCR(imgPath);
-      await unlink(imgPath); // limpiar imagen temporal
-    }
-
-    if (!text || text.length < 20) {
-      throw new Error('No se pudo extraer texto del CV ni con OCR');
-    }
-
-const prompt = `
-Sos un sistema experto que analiza CVs en texto plano. Tu tarea es devolver SOLO un JSON válido con los siguientes campos.
-
-⚠️ Instrucciones clave:
-- El nombre completo es la primera línea o la más destacada. NO confundas el título profesional o el cargo con el nombre.
-- Si un campo no aparece, devolvé null en ese campo.
-- No incluyas comentarios ni texto extra. SOLO el JSON.
-- Los idiomas deben ser un array de objetos con "idioma" y "nivel".
-
-📄 Campos requeridos:
-{
-  "dni": string | null,
-  "nombreCompleto": string | null,
-  "email": string | null,
-  "telefono": string | null,
-  "ubicacion": string | null,
-  "nivelEstudios": string | null,
-  "tituloObtenido": string | null,
-  "institucion": string | null,
-  "habilidades": string[] | [],
-  "idiomas": { "idioma": string, "nivel": string }[] | [],
-  "experiencia": {
-    "empresa": string,
-    "cargo": string,
-    "desde": string,
-    "hasta": string,
-    "tareas": string[]
-  }[] | [],
-  "pretensionSalarial": string | null,
-  "disponibilidad": string | null,
-  "linkedin": string | null,
-  "observaciones": string | null
-}
-
-Ahora analizá el siguiente CV:
-
-========================
-${text}
-========================
-`;
-
-    const completion = await this.openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'Sos un experto en análisis de CVs y estructuración de datos.',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      temperature: 0.2,
-    });
-
-    const raw = completion.choices[0].message?.content;
-    console.log('🧠 Respuesta de GPT:', raw);
-
     try {
-      return {
-  mensaje: 'CV analizado correctamente',
-  candidato: JSON.parse(raw || '{}'),
-};
+      let text: string;
+
+      // 1. Intentar extraer texto con pdf-parse
+      const pdf = await pdfParse(file.buffer);
+      text = pdf.text;
+      console.log('📄 Texto extraído con pdf-parse:\n', text || '[VACÍO]');
+
+      // 2. Si está vacío, usar OCR
+      if (!text || text.trim().length < 30) {
+        console.log('⚠️ Texto vacío. Procesando con OCR...');
+        const imagePath = await this.convertirPdfAPng(file.buffer);
+        text = await this.ocrImagen(imagePath);
+        fs.unlinkSync(imagePath); // eliminar archivo temporal
+        console.log('📸 Texto extraído con OCR:\n', text || '[VACÍO]');
+      }
+
+      // 3. Validar texto
+      if (!text || text.trim().length < 30) {
+        throw new BadRequestException('El texto extraído del CV está vacío o es ilegible.');
+      }
+
+      // 4. Crear prompt
+      const prompt = `
+Extraé del siguiente CV los siguientes campos y devolveme un JSON válido:
+
+- nombreCompleto
+- dni
+- email
+- telefono
+- experiencia (en texto)
+- educacion o titulo (en texto)
+- habilidades (array si las hubiera)
+
+Solo devolveme el JSON. Nada más.
+
+Texto del CV:
+${text}
+      `.trim();
+
+      // 5. Llamada a OpenAI
+      const completion = await this.openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'Sos un experto en análisis de CVs. Siempre devolvés un JSON válido con los campos solicitados.',
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        temperature: 0.2,
+      });
+
+      const raw = completion.choices[0]?.message?.content || '';
+      console.log('📦 Respuesta cruda de OpenAI:\n', raw);
+
+      // 6. Limpiar y parsear JSON
+      const jsonMatch = raw.match(/```json([\s\S]*?)```/);
+      let jsonSolo = '';
+
+      if (jsonMatch) {
+        jsonSolo = jsonMatch[1].trim();
+      } else {
+        const fallbackMatch = raw.match(/{[\s\S]*}/);
+        if (fallbackMatch) {
+          jsonSolo = fallbackMatch[0];
+        }
+      }
+
+      let datos: any;
+      try {
+        datos = JSON.parse(jsonSolo);
+      } catch (err) {
+        console.error('❌ JSON mal formado:', err);
+        throw new InternalServerErrorException('La respuesta de OpenAI no fue un JSON válido.');
+      }
+
+      // 7. Validar campos
+      const camposRequeridos = ['nombreCompleto', 'email', 'telefono', 'experiencia'];
+      for (const campo of camposRequeridos) {
+        if (!datos[campo] || typeof datos[campo] !== 'string') {
+          throw new BadRequestException(`Falta el campo obligatorio: ${campo}`);
+        }
+      }
+
+      if (datos.habilidades && !Array.isArray(datos.habilidades)) {
+        throw new BadRequestException('El campo habilidades debe ser un array.');
+      }
+
+      return datos;
     } catch (err) {
-      console.error('❌ Error al parsear la respuesta:', raw);
-      throw new Error('No se pudo parsear la respuesta de OpenAI como JSON');
+      console.error('❌ Error al procesar CV:', err);
+      throw err;
     }
   }
 
-  private async convertPdfToPng(buffer: Buffer): Promise<string> {
-    const tempName = randomUUID();
-    const pdfPath = join(__dirname, `${tempName}.pdf`);
-    const imgPath = join(__dirname, `${tempName}.png`);
+  private async convertirPdfAPng(buffer: Buffer): Promise<string> {
+    const tempPdfPath = path.join(tmpdir(), `${randomUUID()}.pdf`);
+    fs.writeFileSync(tempPdfPath, buffer);
 
-    await writeFile(pdfPath, buffer);
+    const outputPath = tempPdfPath.replace('.pdf', '');
+    const outDir = path.dirname(tempPdfPath);
+    const outPrefix = path.basename(outputPath);
 
-    return new Promise((resolve, reject) => {
-      const child = spawn('pdftoppm', ['-png', '-f', '1', '-singlefile', pdfPath, pdfPath.replace('.pdf', '')]);
-
-      child.on('exit', async (code) => {
-        await unlink(pdfPath);
-        if (code === 0) resolve(imgPath);
-        else reject(new Error('Error al convertir PDF a imagen'));
-      });
+    await pdfPoppler.convert(tempPdfPath, {
+      format: 'png',
+      out_dir: outDir,
+      out_prefix: outPrefix,
+      page: 1,
     });
+
+    fs.unlinkSync(tempPdfPath);
+    return path.join(outDir, `${outPrefix}-1.png`);
   }
 
-  private async extractTextWithOCR(imagePath: string): Promise<string> {
-    const result = await Tesseract.recognize(imagePath, 'spa', {
-      logger: (m) => console.log(m),
+  private async ocrImagen(rutaImagen: string): Promise<string> {
+    const result = await Tesseract.recognize(rutaImagen, 'spa', {
+      logger: (m) => console.log(`🔍 OCR: ${m.status} (${Math.round(m.progress * 100)}%)`),
     });
+
     return result.data.text;
   }
 }

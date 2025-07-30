@@ -10,9 +10,9 @@ export class Candidato {
 
   @Column({ nullable: true })
   email: string;
-  
+
   @Column({ unique: true })
-dni: string;
+  dni: string;
 
   @Column({ nullable: true })
   telefono: string;
