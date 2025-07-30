@@ -44,15 +44,12 @@ import { InteligenciaTalentoModule } from './inteligencia-talento/inteligencia-t
     EventosRRHHModule,
 
     RespuestaEncuestaModule,
-<<<<<<< HEAD
 
     CandidatoModule,
 
     CvModule,
-=======
     CandidatoModule,
     InteligenciaTalentoModule
->>>>>>> 80f1884e2f72ca70db4c3c7aa0f95c500d955d69
   ],
   providers: [],
 })
