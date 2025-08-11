@@ -30,7 +30,8 @@ import { InteligenciaTalentoModule } from './inteligencia-talento/inteligencia-t
     }),
 
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads',
     }),
 
     AuthModule,

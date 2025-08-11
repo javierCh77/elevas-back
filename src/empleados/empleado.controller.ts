@@ -1,65 +1,56 @@
+// src/empleados/empleado.controller.ts
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UploadedFile,
-  UseInterceptors,
+  Controller, Get, Post, Patch, Delete, Param, Body,
+  UseInterceptors, UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { EmpleadoService } from './empleado.service';
 import { CreateEmpleadoDto } from './dto/create-empleado.dto';
 import { UpdateEmpleadoDto } from './dto/update-empleado.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { v4 as uuidv4 } from 'uuid';
-import { extname } from 'path';
+
+function fileName(req: any, file: Express.Multer.File, cb: (error: any, filename: string) => void) {
+  const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+  cb(null, unique + extname(file.originalname).toLowerCase());
+}
 
 @Controller('empleados')
-export class EmpleadoController {
-  constructor(private readonly empleadoService: EmpleadoService) {}
+export class EmpleadosController {
+  constructor(private readonly service: EmpleadoService) {}
 
   @Get()
-  findAll() {
-    return this.empleadoService.findAll();
-  }
+  findAll() { return this.service.findAll(); }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.empleadoService.findOne(id);
-  }
+  findOne(@Param('id') id: string) { return this.service.findOne(id); }
 
   @Post()
-  @UseInterceptors(
-    FileInterceptor('imagenPerfil', {
-      storage: diskStorage({
-        destination: './uploads/empleados',
-        filename: (req, file, cb) => {
-          const filename = `${uuidv4()}${extname(file.originalname)}`;
-          cb(null, filename);
-        },
-      }),
-    })
-  )
-  create(
-    @UploadedFile() file: Express.Multer.File,
-    @Body() dto: CreateEmpleadoDto
-  ) {
-    if (file) {
-      dto.imagenPerfil = `/uploads/empleados/${file.filename}`;
-    }
-    return this.empleadoService.create(dto);
+  @UseInterceptors(FileInterceptor('imagenPerfil', {
+    storage: diskStorage({
+      destination: './uploads',
+      filename: fileName,
+    }),
+  }))
+  create(@UploadedFile() file: Express.Multer.File, @Body() dto: CreateEmpleadoDto) {
+    return this.service.create(dto, file);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateEmpleadoDto) {
-    return this.empleadoService.update(id, dto);
+  @UseInterceptors(FileInterceptor('imagenPerfil', {
+    storage: diskStorage({
+      destination: './uploads',
+      filename: fileName,
+    }),
+  }))
+  update(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: UpdateEmpleadoDto,
+  ) {
+    return this.service.update(id, dto, file);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.empleadoService.remove(id);
-  }
+  remove(@Param('id') id: string) { return this.service.remove(id); }
 }

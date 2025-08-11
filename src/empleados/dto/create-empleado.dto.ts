@@ -1,4 +1,3 @@
-// src/empleados/dto/create-empleado.dto.ts
 import {
   IsString,
   IsNotEmpty,
@@ -55,10 +54,7 @@ export class CreateEmpleadoDto {
   @IsEmail()
   emailPersonal?: string;
 
-  @IsOptional()
-  @IsEmail()
-  emailLaboral?: string;
-
+  // Imagen (ruta en BD; el archivo va por multipart)
   @IsOptional()
   @IsString()
   imagenPerfil?: string;
@@ -94,11 +90,6 @@ export class CreateEmpleadoDto {
   @IsString()
   turnoJornada?: string;
 
-  // Jerarquía
-  @IsOptional()
-  @IsUUID()
-  reportaAId?: string;
-
   // Contrato y beneficios
   @IsOptional()
   @IsEnum(TipoContrato)
@@ -112,7 +103,7 @@ export class CreateEmpleadoDto {
   @IsString()
   convenioColectivo?: string;
 
-  // Campo previo (opcional ahora)
+  // Campo previo (opcional)
   @IsOptional()
   @IsString()
   dni?: string;
