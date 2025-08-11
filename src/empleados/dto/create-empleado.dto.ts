@@ -1,35 +1,119 @@
-import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+// src/empleados/dto/create-empleado.dto.ts
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  IsEmail,
+  IsUUID,
+  IsDateString,
+  Length,
+} from 'class-validator';
+import {
+  EstadoCivil,
+  EstadoLaboral,
+  ModalidadTrabajo,
+  TipoContrato,
+} from '../entities/empleado.entity';
 
 export class CreateEmpleadoDto {
+  // Identificación
   @IsString()
   @IsNotEmpty()
+  @Length(8, 20) // Ej: "20-12345678-3" o sólo números
+  cuil: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Length(1, 80)
   nombre: string;
 
   @IsString()
   @IsNotEmpty()
+  @Length(1, 80)
   apellido: string;
 
-  @IsString()
-  @IsNotEmpty()
-  dni: string;
-
-  @IsString()
+  // Datos personales
   @IsOptional()
-  telefono?: string;
+  @IsDateString() // formato ISO: "YYYY-MM-DD"
+  fechaNacimiento?: string;
 
-  @IsString()
   @IsOptional()
-  email?: string;
+  @IsEnum(EstadoCivil)
+  estadoCivil?: EstadoCivil;
 
-  @IsString()
+  // Contacto
   @IsOptional()
+  @IsString()
   direccion?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
+  telefono?: string;
+
+  @IsOptional()
+  @IsEmail()
+  emailPersonal?: string;
+
+  @IsOptional()
+  @IsEmail()
+  emailLaboral?: string;
+
+  @IsOptional()
+  @IsString()
   imagenPerfil?: string;
 
-  @IsString()
+  // Relación con empresa (obligatoria)
+  @IsUUID()
   @IsNotEmpty()
   empresaId: string;
+
+  // Estado y fechas
+  @IsOptional()
+  @IsEnum(EstadoLaboral)
+  estadoActual?: EstadoLaboral; // default ACTIVO en la entity
+
+  @IsOptional()
+  @IsDateString()
+  fechaIngreso?: string;
+
+  // Organización
+  @IsOptional()
+  @IsString()
+  area?: string;
+
+  @IsOptional()
+  @IsString()
+  puesto?: string;
+
+  @IsOptional()
+  @IsEnum(ModalidadTrabajo)
+  modalidad?: ModalidadTrabajo;
+
+  @IsOptional()
+  @IsString()
+  turnoJornada?: string;
+
+  // Jerarquía
+  @IsOptional()
+  @IsUUID()
+  reportaAId?: string;
+
+  // Contrato y beneficios
+  @IsOptional()
+  @IsEnum(TipoContrato)
+  tipoContrato?: TipoContrato;
+
+  @IsOptional()
+  @IsString()
+  obraSocial?: string;
+
+  @IsOptional()
+  @IsString()
+  convenioColectivo?: string;
+
+  // Campo previo (opcional ahora)
+  @IsOptional()
+  @IsString()
+  dni?: string;
 }

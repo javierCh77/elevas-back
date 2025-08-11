@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { EmpresasService } from './empresas.service';
 import { CreateEmpresaDto } from './dto/create-empresa.dto';
@@ -31,7 +32,10 @@ export class EmpresasController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateEmpresaDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateEmpresaDto,
+  ) {
     return this.empresasService.update(id, dto);
   }
 
