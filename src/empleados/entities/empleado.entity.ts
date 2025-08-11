@@ -1,14 +1,9 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  Index,
+  Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Index,
+  CreateDateColumn, UpdateDateColumn
 } from 'typeorm';
 import { Empresa } from '../../empresas/entities/empresa.entity';
 
-// Enums sugeridos (ajústalos a tu realidad)
 export enum EstadoCivil {
   SOLTERO = 'SOLTERO',
   CASADO = 'CASADO',
@@ -45,7 +40,6 @@ export class Empleado {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // Identificación
   @Index({ unique: true })
   @Column({ length: 20 })
   cuil: string;
@@ -56,14 +50,12 @@ export class Empleado {
   @Column({ length: 80 })
   apellido: string;
 
-  // Datos personales
   @Column({ type: 'date', nullable: true })
   fechaNacimiento: Date | null;
 
   @Column({ type: 'enum', enum: EstadoCivil, nullable: true })
   estadoCivil: EstadoCivil | null;
 
-  // Contacto
   @Column({ nullable: true })
   direccion: string | null;
 
@@ -81,49 +73,56 @@ export class Empleado {
   @Column({ nullable: true })
   imagenPerfil: string | null;
 
-  // Relación con empresa
   @ManyToOne(() => Empresa, { eager: true, nullable: false })
   @JoinColumn({ name: 'empresaId' })
   empresa: Empresa;
 
-
-
-  // Estado y fechas
+  @Index()
   @Column({ type: 'enum', enum: EstadoLaboral, default: EstadoLaboral.ACTIVO })
   estadoActual: EstadoLaboral;
 
+  @Index()
   @Column({ type: 'date', nullable: true })
   fechaIngreso: Date | null;
 
-  // Organización
-  @Column({ nullable: true })
-  area: string | null; // Area/dpto
+  @Index()
+  @Column({ type: 'date', nullable: true })
+  fechaBaja: Date | null;
 
   @Column({ nullable: true })
-  puesto: string | null; // Puesto/rol
+  area: string | null;
+
+  @Column({ nullable: true })
+  puesto: string | null;
 
   @Column({ type: 'enum', enum: ModalidadTrabajo, nullable: true })
   modalidad: ModalidadTrabajo | null;
 
   @Column({ nullable: true })
-  turnoJornada: string | null; // Ej: "Lun-Vie 9-18", "Noche", etc.
+  turnoJornada: string | null;
 
-  // Jerarquía: "Reporta a"
   @ManyToOne(() => Empleado, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'reportaAId' })
   reportaA: Empleado | null;
 
-  // Contrato y beneficios
   @Column({ type: 'enum', enum: TipoContrato, nullable: true })
   tipoContrato: TipoContrato | null;
 
   @Column({ nullable: true })
-  obraSocial: string | null; // (Podemos migrar luego a relación con ObraSocial)
+  obraSocial: string | null;
 
   @Column({ nullable: true })
   convenioColectivo: string | null;
 
-  // --- Campos previos que ya tenías (si querés mantenerlos)
   @Column({ nullable: true })
   dni: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  cvUrl: string | null;
+
+  @CreateDateColumn({ type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: 'timestamptz' })
+  updatedAt: Date;
 }

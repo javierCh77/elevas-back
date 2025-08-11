@@ -13,6 +13,7 @@ import { RespuestaEncuestaModule } from './respuesta-encuesta/respuesta-encuesta
 import { CandidatoModule } from './candidato/candidato.module';
 import { CvModule } from './cv/cv.module';
 import { InteligenciaTalentoModule } from './inteligencia-talento/inteligencia-talento.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { InteligenciaTalentoModule } from './inteligencia-talento/inteligencia-t
     CandidatoModule,
     InteligenciaTalentoModule,
     CvModule,
+    DashboardModule,
   ],
   providers: [],
 })
